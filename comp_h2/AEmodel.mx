@@ -1,0 +1,55 @@
+#NGroups 4
+#define nvar 1
+#define twonvar 2
+Title SSS
+Data calculation
+ Begin Matrices;
+  X Lower nvar nvar Free     ! additive genetic structure
+  Z Lower nvar nvar Free     ! specific environmental structure
+  H Full 1 1
+End Matrices;
+ Matrix H .5    ! weight of additive genetic effect in DZ twins
+Begin Algebra;
+  A= X*X';
+  E= Z*Z';
+End Algebra;
+End
+G2: Monozygotic twin pairs
+ Data NI=twonvar NO=NUM_PAIRS_MZ  ! number of pairs
+ Labels T1_VAR T2_VAR
+ CMatrix
+  MZtwin1var MZcovar MZtwin2var ! var_t1 covar var_t2
+  Matrices= Group 1
+ Covariances A+E | A _
+             A   | A+E ;
+ Options RSiduals
+End
+G3: Dizygotic twin pairs
+ Data NI=twonvar NO=NUM_PAIRS_DZ  ! number of pairs
+ Labels T1_VAR T2_VAR
+ CMatrix
+ DZtwin1var DZcovar DZtwin2var ! var_t1 covar var_t2
+Matrices= Group 1
+ Covariances A+E   | H@A _
+             H@A   | A+E ;
+ Start .6 All
+ Options Multiple RSiduals
+End
+
+G4: Calculation of standardized solution
+Calculation
+Matrices= Group 1
+I Iden nvar nvar
+Begin Algebra;
+P= A+E;
+V = \sqrt(\v2d(\d2v(P)));
+Q = V~ * A * V~;   ! additive genetic
+S = V~ * E * V~;   ! nonshared environmental
+G= \sqrt(I.P)~*X; ! standardized parameter estimates
+L= \sqrt(I.P)~*Z;
+End Algebra;
+Option RSiduals
+End
+
+
+
